@@ -1,33 +1,51 @@
-local curl = require("plenary.curl")
-
 local M = {}
 
-local api_key = vim.fn.system("~/secrets/chatgpt_api_key.sh")
+M.setup = function(opts)
+    print("this thing isn't conifgurable yet lol")
+end
 
-local json = {
-	model = "gpt-3.5-turbo",
-	messages = {
-		{
-			role = "system",
-			content = "You are a helpful assistant.",
-		},
-		{
-			role = "user",
-			content = "Hello!",
-		},
-	},
+local model = "gpt-3.5-turbo"
+local api_key = vim.fn.system("~/secrets/chatgpt_api_key.sh"):gsub("\n", "")
+local openai_params = {
+    model = "gpt-3.5-turbo",
+    frequency_penalty = 0,
+    presence_penalty = 0,
+    max_tokens = 300,
+    temperature = 0,
+    top_p = 1,
+    n = 1,
 }
 
-local body = vim.fn.json_encode(json)
-local res = curl.post("https://api.openai.com/v1/chat/completions", {
-	body = body,
-	headers = {
-		["Content-Type"] = "application/json",
-		["Authorization"] = "Bearer " .. api_key,
-	},
-})
+M.ask = function(question)
+    local messages = {
+        {
+            role = "system",
+            content = "You're a super smart programmer",
+        },
+        {
+            role = "user",
+            content = question,
+        },
+    }
 
-print(res.status)
-print(vim.inspect(res))
-data = vim.fn.json_decode(res.body).json
-print(vim.inspect(data))
+    local json = vim.tbl_extend("force", openai_params, {
+        messages = messages,
+    })
+
+    local body = vim.fn.json_encode(json)
+    local res = curl.post("https://api.openai.com/v1/chat/completions", {
+        body = body,
+        headers = {
+            ["Content-Type"] = "application/json",
+            ["Authorization"] = "Bearer " .. api_key,
+        },
+    })
+
+    local data = vim.fn.json_decode(res.body)
+    if data.error then
+        print(vim.inspect(data.error))
+        return
+    end
+    local message = data.choices[1].message.content
+    print(message)
+end
