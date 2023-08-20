@@ -50,10 +50,7 @@ M.send_api_request = function(question)
 		return
 	end
 	local message = data.choices[1].message.content
-	for s in message:gmatch("[^\r\n]+") do
-		table.insert(lines, s)
-	end
-	vim.api.nvim_buf_set_lines(window.bufnr, -1, -1, false, lines)
+	print(message)
 end
 
 M._create_window = function()
@@ -83,18 +80,13 @@ end
 
 M.ask = function()
 	local window = M._create_window()
+	AI_win_id = window.win_id
 	AI_bufh = window.bufnr
 
 	vim.api.nvim_buf_set_option(AI_bufh, "filetype", "markdown")
 
-	vim.api.nvim_buf_set_keymap(AI_bufh, "n", "q", "<Cmd>lua require('ai').toggle_quick_menu()<CR>", { silent = true })
-	vim.api.nvim_buf_set_keymap(
-		AI_bufh,
-		"n",
-		"<ESC>",
-		"<Cmd>lua require('ai').toggle_quick_menu()<CR>",
-		{ silent = true }
-	)
+	vim.api.nvim_buf_set_keymap(AI_bufh, "n", "q", "<Cmd>lua require('ai')._toggle_window()<CR>", { silent = true })
+	vim.api.nvim_buf_set_keymap(AI_bufh, "n", "<ESC>", "<Cmd>lua require('ai')._toggle_window()<CR>", { silent = true })
 
 	vim.api.nvim_buf_set_keymap(
 		AI_bufh,
